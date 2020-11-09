@@ -108,230 +108,77 @@ echo "<pre>Setup by Ipang Nett Nott</pre>" > /home/vps/public_html/index.html
 wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/janda09/install/master/vps.conf"
 
 # install openvpn
-apt-get -y install openvpn easy-rsa chrony  pam pam-devel pam_radius
+apt-get -y install openvpn easy-rsa openssl
+cp -r /usr/share/easy-rsa/ /etc/openvpn
+mkdir /etc/openvpn/easy-rsa/keys
+sed -i 's|export KEY_COUNTRY="US"|export KEY_COUNTRY="ID"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_PROVINCE="CA"|export KEY_PROVINCE="JATIM"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_CITY="SanFrancisco"|export KEY_CITY="KEDIRI"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_ORG="Fort-Funston"|export KEY_ORG="JandaBaper"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_EMAIL="me@myhost.mydomain"|export KEY_EMAIL="zuhriirfan09@gmail.com"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_OU="MyOrganizationalUnit"|export KEY_OU="IPANG"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_NAME="EasyRSA"|export KEY_NAME="IPANG"|' /etc/openvpn/easy-rsa/vars
+sed -i 's|export KEY_OU=changeme|export KEY_OU=IPANG|' /etc/openvpn/easy-rsa/vars
 
-cd /usr/share/easy-rsa/3
-cat > /usr/share/easy-rsa/3/vars  << HERE
-export KEY_COUNTRY="ID"
-export KEY_PROVINCE="JATIM"
-export KEY_CITY="KEDIRI"
-export KEY_ORG="sshsedang.site"
-export KEY_EMAIL="sshsedang@gmail.com"
-export KEY_CN="sshsedang.site"
-export KEY_OU="sshsedang.site"
-export KEY_NAME="sshsedang.site"
-export KEY_ALTNAMES="vpn-server"
-HERE
+# Create Diffie-Helman Pem
+openssl dhparam -out /etc/openvpn/dh2048.pem 2048
 
+# Create PKI
+cd /etc/openvpn/easy-rsa
+cp openssl-1.0.0.cnf openssl.cnf
 . ./vars
-./easyrsa init-pki
-./easyrsa gen-dh
-#./easyrsa build-ca
-#./easyrsa gen-req vpn-server nopass
-#./easyrsa sign-req server vpn-server
-#openvpn --genkey --secret pki/ta.key
-#cp -r pki/* /etc/openvpn/
- 
-cp -r /usr/share/easy-rsa/3/pki/dh.pem /etc/openvpn/dh.pem
-cat > /etc/openvpn/ca.crt << HERE
------BEGIN CERTIFICATE-----
-MIIDMDCCAhigAwIBAgIUY+kFJtsaNkfBOLnOlTDrQAL4XuQwDQYJKoZIhvcNAQEL
-BQAwDTELMAkGA1UEAwwCY2EwHhcNMjAwNjAzMDkxMjMzWhcNMzAwNjAxMDkxMjMz
-WjANMQswCQYDVQQDDAJjYTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
-AMP7wIowX0FdjabvIm+jeBU3gdMiSnFcTY0lTlvVjagafAIxCHZmssRq3sttiHh+
-j8ZcCg5myBhLwCICAJ2MthrpDtzvM4C3/JiTkzGjssnL2e5FV5VaPvuKWT/ZmVb5
-Aq1Fdhsj88y+HQVxfeGFWo+yXebTc0/aUgE296LwgFp3tpAI3Vf1AnCfhPN1JBNG
-RZic0dSmjj2psmMf+kaucISyYhrQUNFTsSXf5fy1Ak1gDLQMIpAnsT+webfByftZ
-YYUy92G7+MfAFhf1UCMF0WsTu1ms8e8PLxMRBSeqwM75xCYQatIGyeiqYlTPlJ8n
-4E3ziY1dqAEevMOA7dzr97MCAwEAAaOBhzCBhDAdBgNVHQ4EFgQUPjSqfGmn67bd
-L5/7twL7J7KE2yowSAYDVR0jBEEwP4AUPjSqfGmn67bdL5/7twL7J7KE2yqhEaQP
-MA0xCzAJBgNVBAMMAmNhghRj6QUm2xo2R8E4uc6VMOtAAvhe5DAMBgNVHRMEBTAD
-AQH/MAsGA1UdDwQEAwIBBjANBgkqhkiG9w0BAQsFAAOCAQEAtr1DGoOIAM4B9qnG
-807AwG+LxCleJ4wBqcPrJglQEPiSpjTfKMP5XVkpQlYyVh85xfPOQQrTs7xpb2JS
-hm7ILgy/qtuP0jt2KRRK5o86/cQ6CIymxTZBAJYgD6ocb5BU4B5/YAI85vaE1evI
-fmHwlgppYUWBVOul8qcKRi9gp9uTXjw8558mIQIndeIfGGA36hWz+fNsw1BIudfL
-YaiiO7QeUhZwmpdA7MXv9nfC73Al5vfk3/pN23OIderUQun1WKi5a/M6lRUa4vOJ
-wnJa3QF5dBbAL2xjs9wKLBYZ8BfGHngycbOSCpj4+JRCgHakXLJsmSba3m5lfg86
-zMrxdQ==
------END CERTIFICATE-----
-HERE
+./clean-all
+export EASY_RSA="${EASY_RSA:-.}"
+"$EASY_RSA/pkitool" --initca $*
 
-cat > /etc/openvpn/vpn-server.crt << HERE
------BEGIN CERTIFICATE-----
-MIIDTzCCAjegAwIBAgIQZ8r1uyJQdBllVc1T9II71TANBgkqhkiG9w0BAQsFADAN
-MQswCQYDVQQDDAJjYTAeFw0yMDA2MDMwOTE3NTNaFw0yMjA5MDYwOTE3NTNaMA4x
-DDAKBgNVBAMMA2NsMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANfU
-P4kuoiAgkahHepfYA+Pc3NktwTKbxU7uDDwC4ZnhhgqK9sp+SDAdutbrZ4CGsnkC
-6ZomGnrzkYsvnmaRBGjPwWCGY/jwJas6e/7AHx2Zj+vT0FykRojJNK80qR8ZFCpI
-ki+1MQ7DfehLl+JJYQkpGUAWnBrEYhTOzJRpwmUhydhPymsrIUgXkiGGG82j+5h8
-nkOdm9RkykNHxxXBtX9mv8bOKQLbSw7MWQzbyP/vAoJV6LJjq2EHXXhe2+wj4gqH
-RLRpTKAKQ67bjgxBmI2NhpQ3HgrEskf3bqQx60kUDh9HoCLx6p89A+pnqiiBYpyn
-8+1lGxb/+jWHH+zq31ECAwEAAaOBqTCBpjAJBgNVHRMEAjAAMB0GA1UdDgQWBBRo
-8dlXTx/gK7w1zh95+6WpAzwYSDBIBgNVHSMEQTA/gBQ+NKp8aafrtt0vn/u3Avsn
-soTbKqERpA8wDTELMAkGA1UEAwwCY2GCFGPpBSbbGjZHwTi5zpUw60AC+F7kMBMG
-A1UdJQQMMAoGCCsGAQUFBwMBMAsGA1UdDwQEAwIFoDAOBgNVHREEBzAFggNjbDEw
-DQYJKoZIhvcNAQELBQADggEBAArYgpv4M4L/GXJCx03qatmRlzxulT4y4Lz0lfHS
-CTD155f4ASGCPMw5TokriOgRGqnY5EmXpM6ck3qCvE0zrnSYDZCFMERoxRnEb78H
-IZ0NkO6YevVGh+Uh3GbgRWylw0RZ/g1+9er5tQCnzjD0iE1YKCsaTVFTYVpUk2nT
-1e2rBhTNIVSalw8xZPqHhJaGwLoBTxEV7Iua7/zTZzhyOrJLtnkMipFYptsJFx49
-GpZnpnxxiS18MV7YlFLkzqVX0Bt94AnZodinlRPgQRkG6tu1+8exNPLolgFbgc3s
-XuEiDHCIIwj//xt7e2fNy/gJHCzg2oBII6SpkYmvfJhffg0=
------END CERTIFICATE-----
-HERE
+# Create key server
+export EASY_RSA="${EASY_RSA:-.}"
+"$EASY_RSA/pkitool" --server server
 
-cat > /etc/openvpn/vpn-server.key << HERE
------BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDX1D+JLqIgIJGo
-R3qX2APj3NzZLcEym8VO7gw8AuGZ4YYKivbKfkgwHbrW62eAhrJ5AumaJhp685GL
-L55mkQRoz8FghmP48CWrOnv+wB8dmY/r09BcpEaIyTSvNKkfGRQqSJIvtTEOw33o
-S5fiSWEJKRlAFpwaxGIUzsyUacJlIcnYT8prKyFIF5IhhhvNo/uYfJ5DnZvUZMpD
-R8cVwbV/Zr/GzikC20sOzFkM28j/7wKCVeiyY6thB114XtvsI+IKh0S0aUygCkOu
-244MQZiNjYaUNx4KxLJH926kMetJFA4fR6Ai8eqfPQPqZ6oogWKcp/PtZRsW//o1
-hx/s6t9RAgMBAAECggEBAMDPMS9pRJa04crWiFNsPBVs8rLl6ClA9WRMzwsxe79P
-tMJoYI6HgA/UD1z+kclFC92FV5FJJvDd9RDFqplwReMoblW/2UHDr7MnHSx5D5MO
-437HC+YnL4f1T6aRweAxNE2N5WLPWJMa27kRBw+1hAV9/Lu/NxfGhuSV1jdjv7E9
-eMxHmwbdIukK0W251tsvFhrXHnGVwmhLTzxQKcBgS08CBa1iV5FgmvJ23AqF02kr
-pJRUMTE4e6R0AZRaUsrStNdDGVkKBlalxKN9rlCkaPttSU+Al/Hh6z8Npog3j/tv
-kFAolXt5eRquALosAYfMNtpUbviDl0gUwEog90uinAECgYEA9TJ+TqEzet1WgwM2
-bwfCBwY0zPSA+hb7EVRxw+pulqUrIIIkMaPuOTxHPRVO3iZ00IWEqsPa0+JDB51J
-mYMPZDw3UH4kH1xiGfzn+2rkKFXCmlUGsc+go3NBFq1PwxYPAiGROkuENUSWArMN
-M9790P7AiNJaeCLMmBUgS6+/j0ECgYEA4VaFLl3NgiQ524qvEGNwbe+2WsU1lOXA
-RBzwP1eMa3wL7ptA6VcrGyPUFqgzyHszTvkuLaWF5TC35lGvRfb3oBLiDA8urIrE
-bQJtS/xk4LGjGmZrjiWX7zjJk2+jztHk5YOH1yW0y33fcaSBssPMRdeo6VC3cfg4
-DTQNArL3XBECgYAN0/srlAvDMhhe6x92w4k9vCveIyvi7sjaAVkpI195P3dfLfe8
-lPIqaCvcVgdMn/6Wg/EncEQ3DtuY4lX0Ql/r1zmHYJXI7vzZWln649xaKfv/mCv4
-ey0kCqvxC3UkG2pdRGdcUkXyexu6qz5jXoAR+UwCa1qOy+ed7BMWMaMsAQKBgHBP
-RyHM7timZY/el1J7vVWN3D1xfTsxJ5rLMZLgd8Q6l1fdWYTzRTDJsrN4MhcCEJiT
-6Ugm741DsuTAYbNlXBYUU0Xfa0vj/fK2+vKcYUr8PmayFXlLk2ZPz2gEhIhYZNVf
-sRyyVmH14qApdds7a1yEGFPxPv020fkCsFlgCZmBAoGBALiAkKutcAm7Vu5StiR9
-HbQiYJIQawrdgzkFh2OC3uaF1FsN1nR51EcM4jxfWkh/RaOdB4+IqsIbHb/SaP+u
-ygTSoxdp6ExukMpTIJiETtxm6Fz6uUl+OlPWBhUIDkIiOWOnl0aaMF1VI9d9EzHv
-Lj0U1EWqlmePlpDY5H1/CoSP
------END PRIVATE KEY-----
-HERE
+# Setting KEY CN
+export EASY_RSA="${EASY_RSA:-.}"
+"$EASY_RSA/pkitool" client
 
-cd /etc/openvpn
-mkdir /var/log/openvpn/
-cat >  /etc/openvpn/sshsedang-UDP.ovpn << HERE
-plugin /usr/lib64/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn
-##############################################
-#              SSH SEDANG GROUP              #
-#                SSH SEDANG ™                #
-##############################################
-port 445
-proto udp
-dev tun21
-ca /etc/openvpn/ca.crt
-cert /etc/openvpn/vpn-server.crt
-key /etc/openvpn/vpn-server.key
-dh /etc/openvpn/dh.pem
-server 10.0.0.0 255.255.0.0
-push "redirect-gateway def1"
-push "remote-gateway 10.0.0.1"
-push "dhcp-option DNS 8.8.8.8"
-push "dhcp-option DNS 1.1.1.1"
-keepalive 10 120
-max-clients 1032
-status /var/log/openvpn/openvpn-status.log
-log /var/log/openvpn/openvpn.log
-log-append  /var/log/openvpn/openvpn1.log
-verb 6
-mute 20
-explicit-exit-notify 1
-daemon
-mode server
-verify-client-cert none
-HERE
- 
-cat > /etc/openvpn/sshsedang-TCP.ovpn << HERE
-plugin /usr/lib64/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn
-##############################################
-#              SSH SEDANG GROUP              #
-#                SSH SEDANG ™                #
-##############################################
-port 443
-proto tcp
-dev tun12
-ca /etc/openvpn/ca.crt
-cert /etc/openvpn/vpn-server.crt
-key /etc/openvpn/vpn-server.key
-dh /etc/openvpn/dh.pem
-server 10.4.0.0 255.255.0.0
-#ifconfig-pool-persist ipp.txt
-push "redirect-gateway def1"
-push "remote-gateway 10.4.0.1"
-push "dhcp-option DNS 8.8.8.8"
-push "dhcp-option DNS 1.1.1.1"
-duplicate-cn
-keepalive 10 120
-max-clients 1032
-persist-key
-persist-tun
-status /var/log/openvpn/openvpn-status.log
-log /var/log/openvpn/openvpn.log
-verb 3
-mute 20
-daemon
-mode server
-verify-client-cert none
-HERE
-wget  -O /etc/openvpn/sshsedang-SSL.ovpn "https://raw.githubusercontent.com/janda09/sshsedang/main/sshsedang-SSL.conf"
+# cp /etc/openvpn/easy-rsa/keys/{server.crt,server.key,ca.crt} /etc/openvpn
+cd
+cp /etc/openvpn/easy-rsa/keys/server.crt /etc/openvpn/server.crt
+cp /etc/openvpn/easy-rsa/keys/server.key /etc/openvpn/server.key
+cp /etc/openvpn/easy-rsa/keys/ca.crt /etc/openvpn/ca.crt
+chmod +x /etc/openvpn/ca.crt
+
+# server settings
+cd /etc/openvpn/
+wget -O /etc/openvpn/server-tcp.conf "https://raw.githubusercontent.com/janda09/sshsedang/main/server-tcp.conf"
+wget -O /etc/openvpn/server-udp.conf "https://raw.githubusercontent.com/janda09/sshsedang/main/server-udp.conf"
+systemctl start openvpn@server
+sysctl -w net.ipv4.ip_forward=1
+sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
+iptables -t nat -I POSTROUTING -s 192.168.100.0/24 -o eth0 -j MASQUERADE
+iptables -t nat -I POSTROUTING -o eth0 -j MASQUERADE
+iptables-save > /etc/iptables.up.rules
+wget -O /etc/network/if-up.d/iptables "https://raw.githubusercontent.com/janda09/install/master/iptables"
+chmod +x /etc/network/if-up.d/iptables
+sed -i 's|LimitNPROC|#LimitNPROC|g' /lib/systemd/system/openvpn@.service
+systemctl daemon-reload
+/etc/init.d/openvpn restart
+
+# openvpn config
+wget -O /etc/openvpn/sshsedang-TCP.ovpn "https://raw.githubusercontent.com/janda09/sshsedang/main/sshsedang-TCP.conf"
+sed -i $MYIP2 /etc/openvpn/sshsedang-TCP.ovpn;
+echo '<ca>' >> /etc/openvpn/sshsedang-TCP.ovpn
+cat /etc/openvpn/ca.crt >> /etc/openvpn/sshsedang-TCP.ovpn
+echo '</ca>' >> /etc/openvpn/sshsedang-TCP.ovpn
+cp sshsedang-TCP.ovpn /home/vps/public_html/
+wget -O /etc/openvpn/sshsedang-UDP.ovpn "https://raw.githubusercontent.com/janda09/sshsedang/main/sshsedang-UDP.conf"
+sed -i $MYIP2 /etc/openvpn/sshsedang-UDP.ovpn;
+echo '<ca>' >> /etc/openvpn/sshsedang-UDP.ovpn
+cat /etc/openvpn/ca.crt >> /etc/openvpn/sshsedang-UDP.ovpn
+echo '</ca>' >> /etc/openvpn/sshsedang-UDP.ovpn
+cp sshsedang-UDP.ovpn /home/vps/public_html/
+wget -O /etc/openvpn/sshsedang-SSL.ovpn "https://raw.githubusercontent.com/janda09/sshsedang/main/sshsedang-SSL.conf"
 echo '<ca>' >> /etc/openvpn/sshsedang-SSL.ovpn
 cat /etc/openvpn/ca.crt >> /etc/openvpn/sshsedang-SSL.ovpn
 echo '</ca>' >> /etc/openvpn/sshsedang-SSL.ovpn
-
-ln -sf /usr/sbin/openvpn /etc/init.d/openvpn.udp
-ln -sf /usr/sbin/openvpn /etc/init.d/openvpn.tcp
- 
-cat > /etc/systemd/system/openvpn-tcp.service << HERE
-[Unit]
-Description=OpenVPN TCP
-After=network.target
- 
-[Service]
-Type=forking
-ExecStart=/etc/init.d/openvpn.tcp /etc/openvpn/sshsedang-TCP.ovpn
- 
-[Install]
-WantedBy=multi-user.target
-HERE
-
-cat > /etc/systemd/system/openvpn-udp.service << HERE
-[Unit]
-Description=OpenVPN UDP
-After=network.target
- 
-[Service]
-Type=forking
-ExecStart=/etc/init.d/openvpn.udp /etc/openvpn/sshsedang-UDP.ovpn
- 
-[Install]
-WantedBy=multi-user.target
-HERE
-
-cat > /etc/pam.d/openvpn << HERE
-auth	    required    	pam_radius_auth.so
-account  required    	pam_radius_auth.so
-HERE
-
-cat >/etc/pam_radius.conf << HERE
-# server[:port] shared_secret  	timeout (s)
-$RADSRV $RADPASS        	3
-HERE
- 
-systemctl enable openvpn-udp && systemctl start openvpn-udp 
-systemctl enable openvpn-tcp && systemctl start openvpn-tcp 
-
-cat > /etc/sysctl.conf << HERE
-net.ipv4.ip_forward = 1
-net.ipv6.conf.all.forwarding = 1
-net.ipv4.conf.all.accept_redirects = 0
-net.ipv4.conf.all.send_redirects = 0
-HERE
-sysctl -p /etc/sysctl.conf
-
-cp sshsedang-TCP.ovpn /home/vps/public_html/
-cp sshsedang-UDP.ovpn /home/vps/public_html/
 cp sshsedang-SSL.ovpn /home/vps/public_html/
 
 # install badvpn
@@ -409,9 +256,7 @@ socket = r:TCP_NODELAY=1
 
 [dropbear]
 accept = 444
-connect = 127.0.0.1:111
 accept = 555
-connect = 127.0.0.1:111
 accept = 666
 connect = 127.0.0.1:111
 
@@ -453,8 +298,8 @@ rm -rf /root/ddos-deflate-master.zip
 
 # banner /etc/bnr
 cd
-wget -O /etc/bnr "https://raw.githubusercontent.com/janda09/sshsedang/main/bnr"
-wget -O /etc/banner "https://raw.githubusercontent.com/janda09/sshsedang/main/banner"
+wget -O /etc/bnr "https://raw.githubusercontent.com/janda09/sshsedang/main/banner"
+wget -O /etc/banner "https://raw.githubusercontent.com/janda09/sshsedang/main/bnr"
 sed -i 's@#Banner@Banner /etc/banner@g' /etc/ssh/sshd_config
 sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/bnr"@g' /etc/default/dropbear
 
