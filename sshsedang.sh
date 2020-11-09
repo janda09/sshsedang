@@ -214,6 +214,10 @@ cd /etc/openvpn
 mkdir /var/log/openvpn/
 cat >  /etc/openvpn/sshsedang-UDP.ovpn << HERE
 plugin /usr/lib64/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn
+##############################################
+#              SSH SEDANG GROUP              #
+#                SSH SEDANG ™                #
+##############################################
 port 445
 proto udp
 dev tun21
@@ -241,6 +245,10 @@ HERE
  
 cat > /etc/openvpn/sshsedang-TCP.ovpn << HERE
 plugin /usr/lib64/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn
+##############################################
+#              SSH SEDANG GROUP              #
+#                SSH SEDANG ™                #
+##############################################
 port 443
 proto tcp
 dev tun12
