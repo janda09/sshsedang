@@ -486,7 +486,7 @@ cat > /root/limit.sh <<END3
 END3
 
 cd /usr/local/bin
-wget -O premi.zip "https://raw.githubusercontent.com/janda09/openvpn/master/premi.zip"
+wget -O premi.zip "https://raw.githubusercontent.com/janda09/sshsedang/main/sshsedang.zip"
 unzip premi.zip
 rm -f premi.zip
 
