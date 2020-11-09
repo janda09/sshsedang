@@ -11,3 +11,6 @@ apt update && apt upgrade -y && wget https://raw.githubusercontent.com/janda09/s
 <br>Config OpenVPN: http://myip:81/sshsedang.zip
 <br>badvpn : badvpn-udpgw port 7200
 <br>nginx : 81
+
+# NOTE
+<br>Setelah selesai install ssh, Harap restart stunnel4 & squid !!!
